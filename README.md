@@ -8,7 +8,7 @@
 
 ---
 
-## Getting started
+### Getting started
 
 This repository contains an API client to interact with a remote service we can use to implement a TODO application.
 
