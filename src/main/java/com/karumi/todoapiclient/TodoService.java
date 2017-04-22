@@ -21,6 +21,7 @@ import retrofit.Call;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
+import retrofit.http.Headers;
 import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
@@ -28,7 +29,6 @@ import retrofit.http.Path;
 import static com.karumi.todoapiclient.TodoApiClientConfig.TASKS_ENDPOINT;
 
 interface TodoService {
-
   @GET(TASKS_ENDPOINT) Call<List<TaskDto>> getAll();
 
   @GET(TASKS_ENDPOINT + "/{taskId}") Call<TaskDto> getById(@Path("taskId") String taskId);

@@ -16,12 +16,16 @@
 package com.karumi.todoapiclient;
 
 import com.karumi.todoapiclient.dto.TaskDto;
+import com.karumi.todoapiclient.exception.ItemNotFoundException;
+
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class TodoApiClientTest extends MockWebServerTest {
 
@@ -41,6 +45,14 @@ public class TodoApiClientTest extends MockWebServerTest {
     assertRequestContainsHeader("Accept", "application/json");
   }
 
+  @Test public void sendsAcceptLanguageHeaders() throws Exception {
+    enqueueMockResponse();
+
+    apiClient.getAllTasks();
+
+    assertRequestContainsHeader("Accept-Language", "es");
+  }
+
   @Test public void sendsGetAllTaskRequestToTheCorrectEndpoint() throws Exception {
     enqueueMockResponse();
 
@@ -58,7 +70,34 @@ public class TodoApiClientTest extends MockWebServerTest {
     assertTaskContainsExpectedValues(tasks.get(0));
   }
 
-  private void assertTaskContainsExpectedValues(TaskDto task) {
+    @Test
+    public void parsesPropertlyGettingAnEmptyTaskList() throws Exception {
+        enqueueMockResponse(200, "emptyListResponse.json");
+
+        List<TaskDto> tasks = apiClient.getAllTasks();
+
+        assertEquals(0, tasks.size());
+    }
+
+    @Test(expected = ItemNotFoundException.class)
+    public void parsesPropertlyGettingAn404() throws Exception {
+        enqueueMockResponse(404);
+
+        apiClient.getAllTasks();
+    }
+
+
+    @Test
+    public void parsesPropertlyGettingAnEmptyResponse() throws Exception {
+        enqueueMockResponse(200, "emptyResponse.json");
+
+        List<TaskDto> tasks = apiClient.getAllTasks();
+
+        assertNull( tasks);
+    }
+
+
+    private void assertTaskContainsExpectedValues(TaskDto task) {
     assertEquals(task.getId(), "1");
     assertEquals(task.getUserId(), "1");
     assertEquals(task.getTitle(), "delectus aut autem");
