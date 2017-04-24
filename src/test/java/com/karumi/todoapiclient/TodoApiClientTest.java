@@ -17,6 +17,9 @@ package com.karumi.todoapiclient;
 
 import com.karumi.todoapiclient.dto.TaskDto;
 import com.karumi.todoapiclient.exception.ItemNotFoundException;
+import com.karumi.todoapiclient.exception.NetworkErrorException;
+import com.karumi.todoapiclient.exception.TodoApiClientException;
+import com.karumi.todoapiclient.exception.UnknownErrorException;
 
 import java.util.List;
 import org.junit.Before;
@@ -26,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class TodoApiClientTest extends MockWebServerTest {
 
@@ -80,7 +84,7 @@ public class TodoApiClientTest extends MockWebServerTest {
     }
 
     @Test(expected = ItemNotFoundException.class)
-    public void parsesPropertlyGettingAn404() throws Exception {
+    public void parsesPropertlyGettingAn404FromTasksList() throws Exception {
         enqueueMockResponse(404);
 
         apiClient.getAllTasks();
@@ -94,6 +98,98 @@ public class TodoApiClientTest extends MockWebServerTest {
         List<TaskDto> tasks = apiClient.getAllTasks();
 
         assertNull( tasks);
+    }
+
+    @Test public void sendsGetTaskByIdRequestToTheCorrectEndpoint() throws Exception {
+        enqueueMockResponse();
+
+        apiClient.getTaskById("fakeId");
+
+        assertGetRequestSentTo("/todos/fakeId");
+    }
+
+    @Test
+    public void parsesTasksProperlyGettingTaskById() throws Exception {
+        enqueueMockResponse(200, "getTaskByIdResponse.json");
+
+        TaskDto task = apiClient.getTaskById("fakeId");
+
+        assertEquals("1",task.getId());
+        assertEquals("1",task.getUserId());
+        assertEquals("delectus aut autem",task.getTitle());
+        assertEquals(false,task.isFinished());
+    }
+
+    @Test(expected = ItemNotFoundException.class)
+    public void throwsExceptionWhenGettingAn404FromTasksById() throws Exception {
+        enqueueMockResponse(404);
+
+        apiClient.getTaskById("notFoundId");
+    }
+
+    @Test public void sendsAcceptAndContentTypeHeadersToFindById() throws Exception {
+        enqueueMockResponse();
+
+        apiClient.getTaskById("myId");
+
+        assertRequestContainsHeader("Accept", "application/json");
+    }
+
+    @Test public void sendsAcceptLanguageHeadersToFindById() throws Exception {
+        enqueueMockResponse();
+
+        apiClient.getTaskById("myId");
+
+        assertRequestContainsHeader("Accept-Language", "es");
+    }
+
+    @Test(expected = NetworkErrorException.class)
+    public void parsesPropertlyInvalidJsonFormat() throws Exception {
+        enqueueMockResponse(201, "invalidJsonResponse.json");
+
+        TaskDto task = apiClient.getTaskById("fakeId");
+
+    }
+    @Test public void sendsAddTaskRequestToTheCorrectEndpoint() throws Exception {
+        enqueueMockResponse();
+
+        apiClient.addTask(getTestTask());
+
+        assertPostRequestSentTo("/todos");
+    }
+
+    @Test
+    public void parsesPropertlyNewCreatedTasks() throws Exception {
+        enqueueMockResponse(201, "addTaskResponse.json");
+        TaskDto taskDto = apiClient.addTask(getTestTask());
+
+        assertTaskContainsExpectedValues(taskDto);
+
+    }
+    @Test
+    public void getsUknownErrorExceptionWithStatusCode500OnAddTask() throws Exception {
+        enqueueMockResponse(500, "addTaskResponse.json");
+        try {
+            apiClient.addTask(getTestTask());
+            fail();
+        } catch (TodoApiClientException expected) {
+        }
+
+    }
+
+    @Test
+    public void addTaskSendCorrectBody() throws Exception {
+        enqueueMockResponse(201);
+
+        apiClient.addTask(getTestTask());
+
+        assertRequestBodyEquals("addTaskRequest.json");
+    }
+
+
+
+    private TaskDto getTestTask() {
+        return new TaskDto("1","2","Finish this kata",false);
     }
 
 

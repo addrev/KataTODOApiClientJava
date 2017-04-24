@@ -20,7 +20,7 @@ import com.google.gson.annotations.SerializedName;
 public class TaskDto {
 
   @SerializedName("id") private final String id;
-  @SerializedName("userId") private final String userId;
+  @SerializedName("userId2") private final String userId;
   @SerializedName("title") private final String title;
   @SerializedName("finished") private final boolean finished;
 

@@ -15,6 +15,7 @@
 
 package com.karumi.todoapiclient;
 
+import com.google.gson.JsonObject;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
@@ -65,6 +66,7 @@ public class MockWebServerTest {
     assertEquals(url, request.getPath());
   }
 
+
   protected void assertGetRequestSentTo(String url) throws InterruptedException {
     RecordedRequest request = server.takeRequest();
     assertEquals(url, request.getPath());
@@ -103,7 +105,7 @@ public class MockWebServerTest {
   }
 
   protected void assertRequestContainsHeader(String key, String expectedValue, int requestIndex)
-      throws InterruptedException {
+          throws InterruptedException {
     RecordedRequest recordedRequest = getRecordedRequestAtIndex(requestIndex);
     String value = recordedRequest.getHeader(key);
     assertEquals(expectedValue, value);
